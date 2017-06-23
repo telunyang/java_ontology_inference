@@ -18,6 +18,12 @@ import org.apache.jena.ontology.Individual;
 import org.apache.jena.ontology.ObjectProperty;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -38,8 +44,9 @@ import org.apache.jena.vocabulary.XSD;
 public class InferenceDev {
 
 	private String NS = "http://localhost/by-jena.rdf#";
-	private String path_owl = "/home/darren/workspace/inference-dev/files/by-jena.rdf";
+	private String path_rdf = "/home/darren/workspace/inference-dev/files/by-jena.rdf";
 	private String path_rule = "/home/darren/workspace/inference-dev/files/rule.txt";
+	private String path_rdf_inf = "/home/darren/workspace/inference-dev/files/by-jena-result.rdf";
 	
 	public static void main(String[] args) {
 		try
@@ -138,7 +145,7 @@ public class InferenceDev {
 		FileOutputStream out = null;
 		try 
 		{
-			out = new FileOutputStream(this.path_owl);
+			out = new FileOutputStream(this.path_rdf);
 			model.write(out, "RDF/XML-ABBREV"); //"RDF/XML-ABBREV"為儲存的格式
 			//model.write(out, "RDF/XML");
 		} 
@@ -154,7 +161,7 @@ public class InferenceDev {
 		boolean bool = false;
 		try
 		{
-			Model m = FileManager.get().loadModel(this.path_owl);
+			Model m = FileManager.get().loadModel(this.path_rdf);
 			InfModel infmodel = ModelFactory.createRDFSModel(m);
 			ValidityReport validity = infmodel.validate();
 			if (validity.isValid()) 
@@ -188,7 +195,7 @@ public class InferenceDev {
 		try
 		{
 			Model model = ModelFactory.createDefaultModel();
-			model.read( this.path_owl );
+			model.read( this.path_rdf );
 			
 			Reasoner reasoner = new GenericRuleReasoner( Rule.rulesFromURL( this.path_rule ) );
 			
@@ -217,38 +224,29 @@ public class InferenceDev {
 				
 				//System.out.println( subject.toString() + " " + predicate.toString() + " " + object.toString() );
 			}
-			
-//			Resource config = ModelFactory
-//					.createDefaultModel()
-//					.createResource()
-//					.addProperty(ReasonerVocabulary.PROPsetRDFSLevel, "simple");
-//			Reasoner reasoner = RDFSRuleReasonerFactory.theInstance().create(config);
-			//InfModel inf = ModelFactory.createInfModel(reasoner, m);
-			//System.out.println(inf.toString());
 
+			FileOutputStream out = null;
+			try 
+			{
+				out = new FileOutputStream(this.path_rdf_inf);
+				infModel.write(out, "RDF/XML-ABBREV"); //"RDF/XML-ABBREV"為儲存的格式
+				//model.write(out, "RDF/XML");
+			} 
+			catch (IOException ignore) 
+			{
+				ignore.printStackTrace();
+			}
 			
-//			String queryString = "PREFIX NS:  <http://www.example.com/your_ontology.owl#>\n"
-//					+ "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
-//					+ "SELECT ?animal \n" 
-//					+ "WHERE{ ?animal NS:hunt ?prey . ?prey rdf:type NS:herbivore   }";
-//			Query query = QueryFactory.create(queryString);
-//			QueryExecution qexec = QueryExecutionFactory.create(query, inf);
-//			ResultSet results = qexec.execSelect();
-//			System.out.println(results);
-//			
-//			ResultSetFormatter.outputAsJSON(System.out, results);
-//			
-//			FileOutputStream out = null;
-//			try 
-//			{
-//				out = new FileOutputStream("D:\\result.owl");
-//				inf.write(out, "RDF/XML-ABBREV"); //"RDF/XML-ABBREV"為儲存的格式
-//			} 
-//			catch (IOException ignore) 
-//			{
-//				ignore.printStackTrace();
-//
-//			}
+			
+			String queryString = "PREFIX NS:  <" + this.NS + ">"
+					+ "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+					+ "SELECT ?c " 
+					+ "WHERE{ ?c NS:hunt ?h . ?h rdf:type NS:herbivore   }";
+			Query query = QueryFactory.create(queryString);
+			QueryExecution qexec = QueryExecutionFactory.create(query, infModel);
+			ResultSet results = qexec.execSelect();
+			
+			ResultSetFormatter.outputAsJSON(System.out, results);
 
 		}
 		catch(WrappedIOException e)
