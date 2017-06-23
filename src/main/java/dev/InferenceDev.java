@@ -194,29 +194,37 @@ public class InferenceDev {
 	{
 		try
 		{
+			//讀取檔案
 			Model model = ModelFactory.createDefaultModel();
 			model.read( this.path_rdf );
 			
+			//建立推論器 (來自 rule file)
 			Reasoner reasoner = new GenericRuleReasoner( Rule.rulesFromURL( this.path_rule ) );
 			
+			//產生推論後的 Ontology Model
 			InfModel infModel = ModelFactory.createInfModel( reasoner, model );
 
-			// print out the statements in the model
+			//輸出在推論後 Ontology Model 的各種 statements
 			StmtIterator it = infModel.listStatements();
 			
+			//如果有 statement 就迭代輸出
 			while ( it.hasNext() )
 			{
+				//建立 statement 物件
 				Statement stmt = it.nextStatement();
 				
-				Resource subject = stmt.getSubject();
-				Property predicate = stmt.getPredicate();
-				RDFNode object = stmt.getObject();
+				Resource subject = stmt.getSubject(); //推論的主體
+				Property predicate = stmt.getPredicate(); //斷言
+				RDFNode object = stmt.getObject(); //推論的客體
 				
+				//用正規表達式過濾字串，縮短檢視範圍
 				//Pattern pattern = Pattern.compile("http:\\/\\/localhost\\/");
 				Pattern pattern = Pattern.compile("hunts");
 				
+				//取得過濾後的媒合群組
 				Matcher matcher = pattern.matcher(predicate.toString());
 				
+				//有媒合結果，就輸出
 				if(matcher.find())
 				{
 					System.out.println( "[" + subject.toString() + "] => [" + predicate.toString() + "] => [ " + object.toString() + "]" );
@@ -224,7 +232,8 @@ public class InferenceDev {
 				
 				//System.out.println( subject.toString() + " " + predicate.toString() + " " + object.toString() );
 			}
-
+			
+			//將推論後的 Ontology Model 存檔
 			FileOutputStream out = null;
 			try 
 			{
@@ -237,15 +246,16 @@ public class InferenceDev {
 				ignore.printStackTrace();
 			}
 			
-			
+			//用 SPARQ 查詢「推論後」的 Ontology Model
 			String queryString = "PREFIX NS:  <" + this.NS + ">"
 					+ "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
 					+ "SELECT ?c " 
-					+ "WHERE{ ?c NS:hunt ?h . ?h rdf:type NS:herbivore   }";
+					+ "WHERE{ ?c NS:hunts ?h . ?h rdf:type NS:Herbivore   }";
 			Query query = QueryFactory.create(queryString);
 			QueryExecution qexec = QueryExecutionFactory.create(query, infModel);
 			ResultSet results = qexec.execSelect();
 			
+			//輸出 SPARQ 查詢後的結果
 			ResultSetFormatter.outputAsJSON(System.out, results);
 
 		}
