@@ -1,0 +1,4 @@
+@prefix : <http://localhost#> .
+
+:DarrenYang :hasClass :e-commerce .
+:DavidChio :teaches :e-commerce .

@@ -1,0 +1,4 @@
+@prefix NS: <http://localhost/by-jena.rdf#>.
+@include <RDFS>.
+
+[myRule001: (?c rdf:type NS:Carnivore) (?h rdf:type NS:Herbivore) -> (?c NS:hunts ?h)]
