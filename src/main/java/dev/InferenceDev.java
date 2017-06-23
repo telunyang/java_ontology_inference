@@ -1,5 +1,5 @@
 /*
- * Apache Jena
+ * Apache Jena Download and Install
  * 1. https://jena.apache.org/download/index.cgi
  * 1.1 apache-jena – contains the APIs, SPARQL engine, the TDB native RDF database and command line tools
  * 1.2 apache-jena-fuseki – the Jena SPARQL server
@@ -32,20 +32,20 @@ import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
 import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.shared.WrappedIOException;
 import org.apache.jena.util.FileManager;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.XSD;
 
 public class InferenceDev {
 
-	private String NS = "http://localhost/demo.owl#";
-	private String path_owl = "/home/darren/workspace/OntologyEditor/files/protege.owl";
-	private String path_rule = "/home/darren/workspace/OntologyEditor/files/demo.txt";
+	private String NS = "http://localhost/by-jena.rdf#";
+	private String path_owl = "/home/darren/workspace/inference-dev/files/by-jena.rdf";
+	private String path_rule = "/home/darren/workspace/inference-dev/files/rule.txt";
 	
 	public static void main(String[] args) {
 		try
 		{
-			
 			InferenceDev mycode = new InferenceDev();
-			//mycode.init();
+			mycode.init();
 			if(mycode.verify())
 			{
 				mycode.reason();
@@ -92,17 +92,27 @@ public class InferenceDev {
 			//為 Cow 的屬性 name 新增為 Bob
 			Cow.addProperty(name, this.NS + "Bob");
 			
+			//將 Cow 的 RDF Type 設定為 Herbivore 
+			//Cow.addRDFType(Herbivore);
+			Cow.addProperty(RDF.type, this.NS + "Herbivore");
+			
 			//新增 Carnivore 的實體 Tiger
 			Individual Tiger = Carnivore.createIndividual(this.NS + "Tiger");
 			
-			
+			//將 Tiger 的 RDF Type 設定為 Carnivore
+			//Tiger.addRDFType(Carnivore);
+			Tiger.addProperty(RDF.type, this.NS + "Carnivore");
 			
 			//新增類別 Plant
 			OntClass Plant = model.createClass(this.NS + "Plant");
 			
 			//新增 Grass 實體
 			Individual Grass = Plant.createIndividual(this.NS + "Grass");
-	
+			
+			//將 Grass 的 RDF Type 設定為 Plant
+			//Grass.addRDFType(Plant);
+			Grass.addProperty(RDF.type, this.NS + "Plant");
+			
 			//新增 eat 屬性
 			ObjectProperty eat = model.createObjectProperty(this.NS + "eat");
 			eat.addDomain(Animal); //誰 eat
@@ -129,8 +139,8 @@ public class InferenceDev {
 		try 
 		{
 			out = new FileOutputStream(this.path_owl);
-			//model.write(out, "RDF/XML-ABBREV"); //"RDF/XML-ABBREV"為儲存的格式
-			model.write(out, "RDF/XML");
+			model.write(out, "RDF/XML-ABBREV"); //"RDF/XML-ABBREV"為儲存的格式
+			//model.write(out, "RDF/XML");
 		} 
 		catch (IOException ignore) 
 		{
@@ -195,8 +205,11 @@ public class InferenceDev {
 				Property predicate = stmt.getPredicate();
 				RDFNode object = stmt.getObject();
 				
-				Pattern pattern = Pattern.compile("http:\\/\\/localhost\\/");
-				Matcher matcher = pattern.matcher(subject.toString());
+				//Pattern pattern = Pattern.compile("http:\\/\\/localhost\\/");
+				Pattern pattern = Pattern.compile("hunts");
+				
+				Matcher matcher = pattern.matcher(predicate.toString());
+				
 				if(matcher.find())
 				{
 					System.out.println( "[" + subject.toString() + "] => [" + predicate.toString() + "] => [ " + object.toString() + "]" );
