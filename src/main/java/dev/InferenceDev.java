@@ -7,6 +7,7 @@
 
 package dev;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
@@ -40,6 +41,11 @@ import org.apache.jena.shared.WrappedIOException;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.XSD;
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.io.StringDocumentSource;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 public class InferenceDev {
 
@@ -47,16 +53,17 @@ public class InferenceDev {
 	private String path_rdf = "/home/darren/workspace/inference-dev/files/by-jena.rdf";
 	private String path_rule = "/home/darren/workspace/inference-dev/files/rule.txt";
 	private String path_rdf_inf = "/home/darren/workspace/inference-dev/files/by-jena-result.rdf";
+	private String path_owl = "/home/darren/workspace/inference-dev/files/pizza.owl";
 	
 	public static void main(String[] args) {
 		try
 		{
 			InferenceDev mycode = new InferenceDev();
-			mycode.init();
-			if(mycode.verify())
-			{
-				mycode.reason();
-			}
+			mycode.initOWL();
+//			if(mycode.verify())
+//			{
+//				mycode.reason();
+//			}
 			
 		}
 		catch(WrappedIOException e)
@@ -68,6 +75,25 @@ public class InferenceDev {
 			System.out.println( e.getMessage() );
 		}
 		
+	}
+	
+	protected void initOWL()
+	{
+		try
+		{
+			OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+			
+			File file = new File(this.path_owl);
+			OWLOntology ontology = manager.loadOntologyFromOntologyDocument(file);
+			
+			System.out.println("Number of axioms: " + ontology.getAxiomCount());
+	        //manager.saveOntology(ontology, IRI.create(file.toURI()));
+			
+		}
+		catch(Exception e)
+		{
+			System.out.println( e.getMessage() );
+		}
 	}
 	
 	protected void init()
@@ -146,8 +172,8 @@ public class InferenceDev {
 		try 
 		{
 			out = new FileOutputStream(this.path_rdf);
-			model.write(out, "RDF/XML-ABBREV"); //"RDF/XML-ABBREV"為儲存的格式
-			//model.write(out, "RDF/XML");
+			//model.write(out, "RDF/XML-ABBREV"); //"RDF/XML-ABBREV"為儲存的格式
+			model.write(out, "RDF/XML");
 		} 
 		catch (IOException ignore) 
 		{

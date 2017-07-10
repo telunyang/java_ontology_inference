@@ -40,12 +40,13 @@ dependencies {
 	
 	// https://mvnrepository.com/artifact/org.apache.jena/apache-jena-libs
     compile group: 'org.apache.jena', name: 'apache-jena-libs', version: '3.3.0'
-	
-	// https://mvnrepository.com/artifact/net.sourceforge.owlapi/owlapi-distribution
-    //compile group: 'net.sourceforge.owlapi', name: 'owlapi-distribution', version: '5.1.0'
     
-    // https://mvnrepository.com/artifact/edu.stanford.protege/protege-editor-owl
-    //compile group: 'edu.stanford.protege', name: 'protege-editor-owl', version: '5.2.0'
-	
+    // https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client
+    compile group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '2.0.3'
+    
+    // https://mvnrepository.com/artifact/net.sourceforge.owlapi/owlapi-distribution
+    compile group: 'net.sourceforge.owlapi', name: 'owlapi-distribution', version: '5.1.0'
+    
+    
 }
 
