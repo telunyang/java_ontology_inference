@@ -10,10 +10,16 @@ package dev;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.ontology.DatatypeProperty;
 import org.apache.jena.ontology.Individual;
 import org.apache.jena.ontology.ObjectProperty;
@@ -23,7 +29,6 @@ import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
-import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
@@ -42,28 +47,44 @@ import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.XSD;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.io.StringDocumentSource;
-import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 public class InferenceDev {
 
+	//命名空間
 	private String NS = "http://localhost/by-jena.rdf#";
+	
+	//檔案路徑
 	private String path_rdf = "/home/darren/workspace/inference-dev/files/by-jena.rdf";
 	private String path_rule = "/home/darren/workspace/inference-dev/files/rule.txt";
 	private String path_rdf_inf = "/home/darren/workspace/inference-dev/files/by-jena-result.rdf";
 	private String path_owl = "/home/darren/workspace/inference-dev/files/pizza.owl";
 	
+	//建立 Ontology
+	protected OntModel model = ModelFactory.createOntologyModel();
+	
+	//靜態資料庫連線
+	static Connection connection;
+	
+	protected JsonObject json = new JsonObject();
+	
 	public static void main(String[] args) {
 		try
 		{
 			InferenceDev mycode = new InferenceDev();
-			mycode.initOWL();
+			
+			//資料庫連線
+			connection = DriverManager.getConnection("jdbc:mariadb://localhost:3306/health?user=root&password=root");
+			
+			//mycode.initOWL();
+			mycode.initRDF(0);
 //			if(mycode.verify())
 //			{
 //				mycode.reason();
 //			}
+			
+			connection.close();
 			
 		}
 		catch(WrappedIOException e)
@@ -96,6 +117,75 @@ public class InferenceDev {
 		}
 	}
 	
+	protected void initRDF(Integer id)
+	{
+		try
+		{
+			//查詢用 SQL 語法
+			String sql_select_class = "";
+			sql_select_class += "select `id`, `class_name`, `parent_id` ";
+			sql_select_class += "from `class` ";
+			sql_select_class += "where `parent_id` = ? ";
+			
+			//查詢 class 階層
+			PreparedStatement ps = connection.prepareStatement(sql_select_class);
+			ps.setInt(1, id);
+			ResultSet rs = ps.executeQuery();
+			
+			while(rs.next())
+			{
+				//System.out.println( rs.getInt("id") + ", " + rs.getString("class_name") + ", " + rs.getInt("parent_id") );
+				
+				//OntClass obj = this.model.createClass(this.NS + rs.getString("class_name"));
+				//obj_class = this.model.createClass(this.NS + class_name);
+				
+				this.json.put("id", rs.getInt("id"));
+				this.json.put("class_name", rs.getString("class_name"));
+				this.json.put("parent_id", rs.getInt("parent_id"));
+				this.json.put("child", "");
+				
+				JsonObject json_child = new JsonObject();
+				json_child.put("id", 2);
+				json_child.put("class_name", "Animal");
+				json_child.put("parent_id", 1);
+				json_child.put("child", "");
+				
+				this.json.put("child", json_child);
+				
+				System.out.println(this.json);
+				
+				//this.initRDF(rs.getInt("id"));
+				
+			}
+		}
+		catch(SQLException e)
+		{
+			System.out.println("SQLException: ");
+			System.out.println( e.getMessage() );
+		}
+		catch(Exception e)
+		{
+			System.out.println("Exception: ");
+			System.out.println( e.getMessage() );
+		}
+	}
+	
+	private void addSubClass()
+	{
+		try
+		{
+			
+		}
+		catch(Exception e)
+		{
+			System.out.println("Exception: ");
+			System.out.println( e.getMessage() );
+		}
+	}
+	
+	/**
+	 * 測試透過 Jena 建立 RDF
+	 */
 	protected void init()
 	{
 		try
@@ -279,7 +369,8 @@ public class InferenceDev {
 					+ "WHERE{ ?c NS:hunts ?h . ?h rdf:type NS:Herbivore   }";
 			Query query = QueryFactory.create(queryString);
 			QueryExecution qexec = QueryExecutionFactory.create(query, infModel);
-			ResultSet results = qexec.execSelect();
+			
+			org.apache.jena.query.ResultSet results = qexec.execSelect();
 			
 			//輸出 SPARQ 查詢後的結果
 			ResultSetFormatter.outputAsJSON(System.out, results);
