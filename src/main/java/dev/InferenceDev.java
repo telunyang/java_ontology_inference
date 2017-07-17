@@ -56,10 +56,7 @@ public class InferenceDev {
 	private String NS = "http://localhost/by-jena.rdf#";
 	
 	//檔案路徑
-	private String path_rdf = "/home/darren/workspace/inference-dev/files/by-jena.rdf";
-	private String path_rule = "/home/darren/workspace/inference-dev/files/rule.txt";
-	private String path_rdf_inf = "/home/darren/workspace/inference-dev/files/by-jena-result.rdf";
-	private String path_owl = "/home/darren/workspace/inference-dev/files/pizza.owl";
+	private String path, path_rdf, path_rule, path_rdf_inf, path_owl;
 	
 	//建立 Ontology
 	protected OntModel model = ModelFactory.createOntologyModel();
@@ -96,6 +93,16 @@ public class InferenceDev {
 			System.out.println( e.getMessage() );
 		}
 		
+	}
+	
+	public InferenceDev()
+	{
+		this.path = "/home/darren/workspace/inference-dev/files/";
+		
+		this.path_rdf = this.path + "by-jena.rdf";
+		this.path_rule = this.path + "rule.txt";
+		this.path_rdf_inf = this.path + "by-jena-result.rdf";
+		this.path_owl = this.path + "pizza.owl";
 	}
 	
 	protected void initOWL()
